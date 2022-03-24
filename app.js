@@ -15,6 +15,7 @@ db.once("open", () => console.log("Connected to DB!"));
 
 app.set("view engine", "ejs");
 app.set("views",path.join(__dirname,"views"));
+app.engine('ejs',ejsMate);
 app.use(express.urlencoded({extended: true}));
 app.use(methodOverride('_method'));
 app.get('/', (req, res) => {
