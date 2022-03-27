@@ -6,11 +6,11 @@ const userController = require('../controllers/user');
 // Register
 router.route('/register')
     .get(userController.renderRegister)
-    .post(catchAsync(userController.register))
+    .post(catchAsync(userController.userRegister))
 // Login
 router.route('/login')
     .get(userController.renderLogin)
-    .post(passport.authenticate('local', {failureFlash:true, failureRedirect:'/login'}), userController.login);
+    .post(passport.authenticate('local', {failureFlash:true, failureRedirect:'/login'}), userController.userLogin);
 // Logout
-router.get('/logout', userController.logout)
+router.get('/logout', userController.userLogout)
 module.exports = router;
