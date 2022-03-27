@@ -1,19 +1,18 @@
+// Packages, modules, and files:
 const express = require('express');
 const mongoose = require('mongoose');
-const Campground = require('./models/campground');
-const Review = require('./models/review');
 const ejsMate = require('ejs-mate');
-const Joi = require('joi');
-const {campgroundSchema , reviewSchema} = require('./schema');
-const catchAsync = require('./utils/catchAsync');
 const ExpressError = require('./utils/ExpressError')
 const methodOverride = require('method-override');
-const campgrounds = require('./routes/campground');
-const reviews = require('./routes/review');
+const campgroundRoutes = require('./routes/campground');
+const reviewRoutes = require('./routes/review');
+const userRoutes = require('./routes/user');
 const path = require('path');
 const session = require('express-session');
-const app = express();
 const flash = require('connect-flash');
+const passport = require('passport');
+const LocalStrategy = require('passport-local');
+const User = require('./models/user')
 //Mongoose connection
 mongoose.connect('mongodb://localhost:27017/yelp_camp', {
     useNewUrlParser: true, 
@@ -22,10 +21,11 @@ mongoose.connect('mongodb://localhost:27017/yelp_camp', {
 const db = mongoose.connection;
 db.on("error", console.error.bind(console,"connection error"));
 db.once("open", () => console.log("Connected to DB!"));
-// App.use and app.set
+// App config
+const app = express();
+app.engine('ejs',ejsMate);
 app.set("view engine", "ejs");
 app.set("views",path.join(__dirname,"views"));
-app.engine('ejs',ejsMate);
 app.use(express.urlencoded({extended: true}));
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname,"public")));
@@ -41,9 +41,16 @@ const sessionConfig = {
     }
 };
 app.use(session(sessionConfig));
+app.use(passport.initialize());
+app.use(passport.session());
+passport.use(new LocalStrategy(User.authenticate()));
+// Serialize and deserialize is the way to store user in session
+passport.serializeUser(User.serializeUser());
+passport.deserializeUser(User.deserializeUser());
 // connect-flash setup
 app.use(flash());
 app.use((req, res, next) => {
+    res.locals.currentUser = req.user;
     res.locals.success = req.flash('success');
     res.locals.error = req.flash('error');
     next();
@@ -52,8 +59,9 @@ app.use((req, res, next) => {
 app.get('/', (req, res) => {
     res.render("home");
 })
-app.use('/campgrounds',campgrounds)
-app.use('/campgrounds/:id/reviews',reviews);
+app.use('/campgrounds',campgroundRoutes)
+app.use('/campgrounds/:id/reviews',reviewRoutes);
+app.use('/',userRoutes);
 // Error handler middleware
 app.all('*', (req, res, next) => {
     next(new ExpressError("Page not found.", 404));
