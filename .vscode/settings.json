@@ -1,6 +1,8 @@
 {
     "cSpell.words": [
         "giaphong",
-        "MAPBOX"
-    ]
+        "MAPBOX",
+        "mapboxgl"
+    ],
+    "html.validate.scripts": false,
 }
