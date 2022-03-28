@@ -2,7 +2,9 @@
     "cSpell.words": [
         "giaphong",
         "MAPBOX",
-        "mapboxgl"
+        "mapboxgl",
+        "unclustered",
+        "virtuals"
     ],
     "html.validate.scripts": false,
 }
