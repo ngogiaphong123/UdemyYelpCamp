@@ -17,9 +17,12 @@ const passport = require('passport');
 const LocalStrategy = require('passport-local');
 const User = require('./models/user')
 const mongoSanitize = require('express-mongo-sanitize');
+const cloudDb = process.env.DB_URL;
+const MongoStore = require('connect-mongo');
 const helmet = require('helmet');
 //Mongoose connection
-mongoose.connect('mongodb://localhost:27017/yelp_camp', {
+const localDb = 'mongodb://localhost:27017/yelp_camp';
+mongoose.connect(localDb, {
     useNewUrlParser: true, 
     useUnifiedTopology: true,
 });
@@ -35,6 +38,16 @@ app.use(express.urlencoded({extended: true}));
 app.use(methodOverride('_method'));
 app.use(express.static(path.join(__dirname,"public")));
 // Session setup
+const store = MongoStore.create({
+    mongoUrl: localDb,
+    touchAfter: 24 * 60 * 60,
+    crypto: {
+        secret: 'secret'
+    }
+});
+store.on("err", (e) => {
+    console.log(e);
+})
 const sessionConfig = {
     name: 'coicc?',
     secret: 'secret',
@@ -45,7 +58,8 @@ const sessionConfig = {
         // secure : true,
         expires: Date.now() + (1000 * 60 * 60 * 24 * 7),
         maxAge: 1000 * 60 * 60 * 24 * 7
-    }
+    },
+    store: store
 };
 app.use(session(sessionConfig));
 app.use(passport.initialize());
